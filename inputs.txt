@@ -1,0 +1,623 @@
+//Declaracion del simbolo principal
+S -> FE FUNC_PRINC FE
+
+//La declaracion de una funcion principal debe ser asi
+FUNC_PRINC -> funcion_principal BODY_FUNCION fin_principal
+
+//Funciones y estructuras puede ser la declaracion de una funcion, la declaracion de una estructura o vacio
+FE -> DF FE
+FE -> DE FE
+FE -> EPSILON
+
+	//La declaracion de una funcion tiene el formato a continuacion
+	DF -> funcion NOMBRE id tk_par_izq ARG tk_par_der hacer BODY_FUNCION retornar RET fin_funcion
+	
+		//El nombre de una funcion puede ser de algun tipo primitivo, o de una estructura
+		NOMBRE -> TIPO
+		NOMBRE -> id
+			
+			//Tipo de funcion
+			TIPO -> booleano 
+			TIPO -> real
+			TIPO -> caracter
+			TIPO -> cadena
+			TIPO -> entero
+			
+			//Los argumentos que recibe una funcion pueden ser asi
+			ARG -> NOMBRE id SIG_ARG
+			ARG -> EPSILON
+			SIG_ARG -> tk_coma NOMBRE id SIG_ARG
+			SIG_ARG -> EPSILON
+			
+			//EL cuerpo de una funcion puede llamar a una funcion
+			BODY_FUNCION -> COMANDO BODY_FUNCION
+			BODY_FUNCION -> DECLARACION_VARIABLE BODY_FUNCION
+			BODY_FUNCION -> id ASIGNACION_LLAMADO_INSTANCIACION BODY_FUNCION
+			BODY_FUNCION -> CONDICIONAL BODY_FUNCION
+			BODY_FUNCION -> CICLO BODY_FUNCION
+			BODY_FUNCION -> SELECCION BODY_FUNCION
+			BODY_FUNCION -> EPSILON
+			
+				//Un comando lee un valor de consola en una variable, o imprime en consola
+				COMANDO -> leer tk_par_izq VARIABLE tk_par_der tk_pyc
+				COMANDO -> imprimir tk_par_izq CONCAT tk_par_der tk_pyc
+				
+					//Una concatenacion para impresion puede contener variables, llamados a funciones u operaciones con variables, sin variables, o strings
+					CONCAT -> VARIABLE_LLAMADO_OPERACIONES SIG_CONCAT
+					CONCAT -> OPERACION_NUMERICA SIG_CONCAT
+					CONCAT -> OPERACION_BOOLEANA SIG_CONCAT
+					CONCAT -> STRING SIG_CONCAT
+					CONCAT -> tk_par_izq OPERACION_MIXTA SIG_OPERACION_MIXTA_TRANSICION tk_par_der
+					
+						//Lo que puede venir despues de una concatenacion
+						SIG_CONCAT -> EPSILON
+						SIG_CONCAT -> tk_coma CONCAT
+						
+						//Cadenas simples
+						STRING -> tk_cadena
+						STRING -> tk_caracter
+						
+						//Operaciones Booleanas
+						OPERACION_BOOLEANA -> verdadero SIG_OPERACION_BOOLEANA
+						OPERACION_BOOLEANA -> falso SIG_OPERACION_BOOLEANA
+						OPERACION_BOOLEANA -> tk_neg OPERACION_BOOLEANA_MIXTA
+						
+							//Suiguiente operacion booleana
+							SIG_OPERACION_BOOLEANA -> EPSILON
+							SIG_OPERACION_BOOLEANA -> tk_y OPERACION_BOOLEANA_MIXTA
+							SIG_OPERACION_BOOLEANA -> tk_o OPERACION_BOOLEANA_MIXTA
+							SIG_OPERACION_BOOLEANA -> tk_igual OPERACION_BOOLEANA_SIMPLE_MIXTA
+							SIG_OPERACION_BOOLEANA -> tk_dif OPERACION_BOOLEANA_SIMPLE_MIXTA
+							SIG_OPERACION_BOOLEANA -> tk_mayor OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA
+							SIG_OPERACION_BOOLEANA -> tk_menor OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA
+							SIG_OPERACION_BOOLEANA -> tk_mayor_igual OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA
+							SIG_OPERACION_BOOLEANA -> tk_menor_igual OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA
+							
+								//Operaciones simples, como igualacion '==' o '!='
+								OPERACION_BOOLEANA_SIMPLE_MIXTA -> verdadero SIG_OP_BOOL_SIMPLE_MIXTA
+								OPERACION_BOOLEANA_SIMPLE_MIXTA -> falso SIG_OP_BOOL_SIMPLE_MIXTA
+								OPERACION_BOOLEANA_SIMPLE_MIXTA -> id AGREG_ID_BOOL SIG_OP_BOOL_SIMPLE_MIXTA
+								OPERACION_BOOLEANA_SIMPLE_MIXTA -> TRANSICION_NUMERICA SIG_OP_BOOL_SIMPLE_MIXTA
+								OPERACION_BOOLEANA_SIMPLE_MIXTA -> tk_neg OPERACION_BOOLEANA_SIMPLE_MIXTA
+								OPERACION_BOOLEANA_SIMPLE_MIXTA -> tk_par_izq OPERACION_BOOLEANA_SIMPLE_MIXTA tk_par_der SIG_OP_BOOL_SIMPLE_MIXTA
+								
+									//Este estado me permite verificar si estoy viendo números
+									TRANSICION_NUMERICA -> tk_real SIG_OPERACION_MIXTA_TRANSICION
+									TRANSICION_NUMERICA -> tk_entero SIG_OPERACION_MIXTA_TRANSICION
+									//TRANSICION_NUMERICA -> id AGREG_ID SIG_OPERACION_MIXTA_TRANSICION
+									
+										//Siguiente operacion mixta
+										SIG_OPERACION_MIXTA_TRANSICION -> EPSILON
+										SIG_OPERACION_MIXTA_TRANSICION -> tk_mas OPERACION_MIXTA 
+										SIG_OPERACION_MIXTA_TRANSICION -> tk_menos OPERACION_MIXTA 
+										SIG_OPERACION_MIXTA_TRANSICION -> tk_div OPERACION_MIXTA 
+										SIG_OPERACION_MIXTA_TRANSICION -> tk_mult OPERACION_MIXTA 
+										SIG_OPERACION_MIXTA_TRANSICION -> tk_mod OPERACION_MIXTA 
+									
+									//Debido a que solo se puede relalizar una comparacion, entonces se crea este estado. NO AGREGAR IGUAL NI DIF
+									SIG_OP_BOOL_SIMPLE_MIXTA -> EPSILON
+									SIG_OP_BOOL_SIMPLE_MIXTA -> tk_y OPERACION_BOOLEANA_MIXTA
+									SIG_OP_BOOL_SIMPLE_MIXTA -> tk_o OPERACION_BOOLEANA_MIXTA
+							
+								//Operacion de booleanos con variables
+								OPERACION_BOOLEANA_MIXTA -> verdadero SIG_OPERACION_BOOLEANA_MIXTA
+								OPERACION_BOOLEANA_MIXTA -> falso SIG_OPERACION_BOOLEANA_MIXTA
+								OPERACION_BOOLEANA_MIXTA -> id AGREG_ID_BOOL SIG_OPERACION_BOOLEANA_MIXTA
+								OPERACION_BOOLEANA_MIXTA -> TRANSICION_NUMERICA SIG_OP_BOOL_NUM_SIM_MIXTA SIG_OPERACION_BOOLEANA_MIXTA
+								OPERACION_BOOLEANA_MIXTA -> tk_neg OPERACION_BOOLEANA_MIXTA
+								OPERACION_BOOLEANA_MIXTA -> tk_par_izq OPERACION_BOOLEANA_MIXTA tk_par_der SIG_OPERACION_BOOLEANA
+								
+									//Siguiente operacion booleana-numerica simple mixta. Si se comienza por una operacion numerica, se debe comparar con otra
+									SIG_OP_BOOL_NUM_SIM_MIXTA -> tk_mayor TRANSICION_NUMERICA 
+									SIG_OP_BOOL_NUM_SIM_MIXTA -> tk_menor TRANSICION_NUMERICA
+									SIG_OP_BOOL_NUM_SIM_MIXTA -> tk_mayor_igual TRANSICION_NUMERICA
+									SIG_OP_BOOL_NUM_SIM_MIXTA -> tk_menor_igual TRANSICION_NUMERICA
+								
+									//Operacion booleana mixta anidada. Parece tonto, pero soluciona el problema de la coma
+									OP_BOOL_MIX_ANIDADA -> verdadero SIG_OPERACION_BOOLEANA_MIXTA
+									OP_BOOL_MIX_ANIDADA -> falso SIG_OPERACION_BOOLEANA_MIXTA
+									OP_BOOL_MIX_ANIDADA -> id AGREG_ID_BOOL SIG_OPERACION_BOOLEANA_MIXTA
+									OP_BOOL_MIX_ANIDADA -> tk_neg OP_BOOL_MIX_ANIDADA
+									OP_BOOL_MIX_ANIDADA -> tk_par_izq OP_BOOL_MIX_ANIDADA tk_par_der SIG_OP_BOOL_MIX_ANIDADA
+								
+										//Suiguiente operacion booleana mixta. Se hace este paso porque si se subia de nivel se interferia con la coma del CONCAT
+										SIG_OPERACION_BOOLEANA_MIXTA -> EPSILON
+										SIG_OPERACION_BOOLEANA_MIXTA -> tk_y OPERACION_BOOLEANA_MIXTA
+										SIG_OPERACION_BOOLEANA_MIXTA -> tk_o OPERACION_BOOLEANA_MIXTA
+										SIG_OPERACION_BOOLEANA_MIXTA -> tk_igual OPERACION_BOOLEANA_SIMPLE_MIXTA
+										SIG_OPERACION_BOOLEANA_MIXTA -> tk_dif OPERACION_BOOLEANA_SIMPLE_MIXTA
+										SIG_OPERACION_BOOLEANA_MIXTA -> tk_mayor TRANSICION_NUMERICA SIG_OP_BOOL_SIMPLE_MIXTA
+										SIG_OPERACION_BOOLEANA_MIXTA -> tk_menor TRANSICION_NUMERICA SIG_OP_BOOL_SIMPLE_MIXTA
+										SIG_OPERACION_BOOLEANA_MIXTA -> tk_mayor_igual TRANSICION_NUMERICA SIG_OP_BOOL_SIMPLE_MIXTA
+										SIG_OPERACION_BOOLEANA_MIXTA -> tk_menor_igual TRANSICION_NUMERICA SIG_OP_BOOL_SIMPLE_MIXTA
+										
+											//Este estado y los dos siguientes arregla el problema de los siguientes
+											SIG_OP_BOOL_MIX_ANIDADA -> EPSILON
+											SIG_OP_BOOL_MIX_ANIDADA -> tk_y OP_BOOL_MIX_ANIDADA
+											SIG_OP_BOOL_MIX_ANIDADA -> tk_o OP_BOOL_MIX_ANIDADA
+											SIG_OP_BOOL_MIX_ANIDADA -> tk_igual OPERACION_BOOLEANA_SIMPLE_MIXTA
+											SIG_OP_BOOL_MIX_ANIDADA -> tk_dif OPERACION_BOOLEANA_SIMPLE_MIXTA
+											
+											//CUando aparece un id, puede ser el llamado a una funcion, una variable simple, o un atributo de una estructura
+											AGREG_ID_BOOL -> EPSILON
+											AGREG_ID_BOOL -> tk_par_izq CONCAT tk_par_der
+											AGREG_ID_BOOL -> tk_punto id AGREG_ID_SIG_ATR_BOOL
+											
+												//Un id al ser llamado tambien puede referirse al atributo de una estructura
+												AGREG_ID_SIG_ATR_BOOL -> EPSILON
+												AGREG_ID_SIG_ATR_BOOL -> tk_punto id AGREG_ID_SIG_ATR_BOOL
+							
+						//Operaciones meramente numericas, sin variables
+						OPERACION_NUMERICA -> tk_real SIG_OPERACION
+						OPERACION_NUMERICA -> tk_entero SIG_OPERACION
+							
+							//Siguiente operacion numerica
+							SIG_OPERACION -> EPSILON
+							SIG_OPERACION -> tk_mas OPERACION_MIXTA
+							SIG_OPERACION -> tk_menos OPERACION_MIXTA
+							SIG_OPERACION -> tk_mult OPERACION_MIXTA
+							SIG_OPERACION -> tk_div OPERACION_MIXTA
+							SIG_OPERACION -> tk_mod OPERACION_MIXTA
+							SIG_OPERACION -> tk_mayor OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA_TRANSICION
+							SIG_OPERACION -> tk_menor OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA_TRANSICION
+							SIG_OPERACION -> tk_mayor_igual OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA_TRANSICION
+							SIG_OPERACION -> tk_menor_igual OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA_TRANSICION
+							
+							//Debido a que solo se puede relalizar una comparacion, entonces se crea este estado. NO AGREGAR IGUAL NI DIF
+							SIG_OP_BOOL_SIMPLE_MIXTA_TRANSICION -> EPSILON
+							SIG_OP_BOOL_SIMPLE_MIXTA_TRANSICION -> tk_y OPERACION_BOOLEANA_MIXTA
+							SIG_OP_BOOL_SIMPLE_MIXTA_TRANSICION -> tk_o OPERACION_BOOLEANA_MIXTA
+						
+						//Este estado hace referencia a cosas que comiencen por un id
+						VARIABLE_LLAMADO_OPERACIONES -> id AGREG_ID OPERACION_CON_VARIABLES
+							
+							//CUando aparece un id, puede ser el llamado a una funcion, una variable simple, o un atributo de una estructura
+							AGREG_ID -> EPSILON
+							AGREG_ID -> tk_par_izq CONCAT tk_par_der
+							AGREG_ID -> tk_punto id AGREG_ID_SIG_ATR
+							
+								//Un id al ser llamado tambien puede referirse al atributo de una estructura
+								AGREG_ID_SIG_ATR -> EPSILON
+								AGREG_ID_SIG_ATR -> tk_punto id AGREG_ID_SIG_ATR
+								
+							//Operaciones con variables, osea, operaciones cosas que comiencen por id
+							OPERACION_CON_VARIABLES -> EPSILON
+							OPERACION_CON_VARIABLES -> tk_mas OPERACION_MIXTA
+							OPERACION_CON_VARIABLES -> tk_menos OPERACION_MIXTA
+							OPERACION_CON_VARIABLES -> tk_div OPERACION_MIXTA
+							OPERACION_CON_VARIABLES -> tk_mult OPERACION_MIXTA
+							OPERACION_CON_VARIABLES -> tk_mod OPERACION_MIXTA
+							OPERACION_CON_VARIABLES -> tk_y OPERACION_BOOLEANA_MIXTA
+							OPERACION_CON_VARIABLES -> tk_o OPERACION_BOOLEANA_MIXTA
+							OPERACION_CON_VARIABLES -> tk_igual OPERACION_BOOLEANA_SIMPLE_MIXTA
+							OPERACION_CON_VARIABLES -> tk_dif OPERACION_BOOLEANA_SIMPLE_MIXTA
+							//OPERACION_CON_VARIABLES -> tk_mayor OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA
+							//OPERACION_CON_VARIABLES -> tk_menor OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA
+							//OPERACION_CON_VARIABLES -> tk_mayor_igual OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA
+							//OPERACION_CON_VARIABLES -> tk_menor_igual OPERACION_MIXTA SIG_OP_BOOL_SIMPLE_MIXTA
+							
+								//Operaciones con numeros y variables, y llamados a funciones, y atributos de estructuras
+								OPERACION_MIXTA -> tk_par_izq OPERACION_MIXTA_ANIDADA tk_par_der SIG_OPERACION_MIXTA_ANIDADA
+								OPERACION_MIXTA -> tk_entero SIG_OPERACION_MIXTA
+								OPERACION_MIXTA -> tk_real SIG_OPERACION_MIXTA
+								OPERACION_MIXTA -> id AGREG_ID SIG_OPERACION_MIXTA
+								
+									//Operacion mixta anidada
+									OPERACION_MIXTA_ANIDADA -> tk_par_izq OPERACION_MIXTA_ANIDADA tk_par_der SIG_OPERACION_MIXTA_ANIDADA
+									OPERACION_MIXTA_ANIDADA -> tk_entero SIG_OPERACION_MIXTA_ANIDADA
+									OPERACION_MIXTA_ANIDADA -> tk_real SIG_OPERACION_MIXTA_ANIDADA
+									OPERACION_MIXTA_ANIDADA -> id AGREG_ID SIG_OPERACION_MIXTA_ANIDADA
+									
+										//Siguiente operacion mixta anidada
+										SIG_OPERACION_MIXTA_ANIDADA -> EPSILON
+										SIG_OPERACION_MIXTA_ANIDADA -> tk_mas OPERACION_MIXTA_ANIDADA 
+										SIG_OPERACION_MIXTA_ANIDADA -> tk_menos OPERACION_MIXTA_ANIDADA 
+										SIG_OPERACION_MIXTA_ANIDADA -> tk_div OPERACION_MIXTA_ANIDADA 
+										SIG_OPERACION_MIXTA_ANIDADA -> tk_mult OPERACION_MIXTA_ANIDADA 
+										SIG_OPERACION_MIXTA_ANIDADA -> tk_mod OPERACION_MIXTA_ANIDADA 
+								
+									//Siguiente operacion mixta
+									SIG_OPERACION_MIXTA -> EPSILON
+									SIG_OPERACION_MIXTA -> tk_mas OPERACION_MIXTA 
+									SIG_OPERACION_MIXTA -> tk_menos OPERACION_MIXTA 
+									SIG_OPERACION_MIXTA -> tk_div OPERACION_MIXTA 
+									SIG_OPERACION_MIXTA -> tk_mult OPERACION_MIXTA 
+									SIG_OPERACION_MIXTA -> tk_mod OPERACION_MIXTA 
+							
+						
+					//Esta variable hace referencia a nombres de variables o atributos de estructuras, Ej: "n.p.c" o "variable"
+					VARIABLE -> id SIG_VAR
+						
+						SIG_VAR -> EPSILON
+						SIG_VAR -> tk_punto VARIABLE
+			
+				//Declaracion de una variable dentro de DOBY_FUNCION
+				DECLARACION_VARIABLE -> entero id ASIGNACION_INICIAL SIGUIENTE_DECLARACION tk_pyc
+				DECLARACION_VARIABLE -> real id ASIGNACION_INICIAL SIGUIENTE_DECLARACION tk_pyc
+				DECLARACION_VARIABLE -> cadena id ASIGNACION_INICIAL SIGUIENTE_DECLARACION tk_pyc
+				DECLARACION_VARIABLE -> caracter id ASIGNACION_INICIAL SIGUIENTE_DECLARACION tk_pyc
+				DECLARACION_VARIABLE -> booleano id ASIGNACION_INICIAL SIGUIENTE_DECLARACION tk_pyc
+				
+					//Debido a que podemos declarar varias variables en una sola linea;
+					SIGUIENTE_DECLARACION -> EPSILON
+					SIGUIENTE_DECLARACION -> tk_coma id ASIGNACION_INICIAL SIGUIENTE_DECLARACION
+				
+					//Al crear una variable se le puede asignar valor de una, o poner punto y coma
+					ASIGNACION_INICIAL -> EPSILON
+					ASIGNACION_INICIAL -> tk_asig ASIGNACION
+					
+						//Esta es la asignacion definitiva, no puede ir vacia.
+						ASIGNACION -> VARIABLE_LLAMADO_OPERACIONES
+						ASIGNACION -> OPERACION_NUMERICA
+						ASIGNACION -> OPERACION_BOOLEANA
+						ASIGNACION -> tk_par_izq ASIGNACION tk_par_der
+						ASIGNACION -> STRING
+						
+							//Para cuando se tienen varias operaciones dentro de un parentesis
+							
+				//Dentro del cuerpo de una funcion, se puede asignar variables, llamar funciones, e instanciar estructuras
+				ASIGNACION_LLAMADO_INSTANCIACION -> tk_par_izq CONCAT tk_par_der tk_pyc
+				ASIGNACION_LLAMADO_INSTANCIACION -> tk_asig ASIGNACION tk_pyc
+				ASIGNACION_LLAMADO_INSTANCIACION -> id tk_pyc
+				ASIGNACION_LLAMADO_INSTANCIACION -> tk_punto AGREG_ID_BODY tk_asig ASIGNACION tk_pyc
+				
+					AGREG_ID_BODY -> id AGREG_ID_SIG_ATR_BODY
+				
+						//Un id al ser llamado tambien puede referirse al atributo de una estructura
+						AGREG_ID_SIG_ATR_BODY -> EPSILON
+						AGREG_ID_SIG_ATR_BODY -> tk_punto id AGREG_ID_SIG_ATR_BODY
+						
+				//Condicionales
+				CONDICIONAL -> si tk_par_izq OPERACION_MIXTA tk_par_der entonces BODY_FUNCION SINO fin_si
+				
+					//Operacion de booleanos con variables dentro de condicionales, se diferencian en que estas pueden usar signos de mayor y menor, y mayor o igual y menor o igual e igual
+					OPERACION_BOOLEANA_MIXTA_CONDICIONAL -> verdadero SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+					OPERACION_BOOLEANA_MIXTA_CONDICIONAL -> falso SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+					OPERACION_BOOLEANA_MIXTA_CONDICIONAL -> id AGREG_ID_BOOL_CONDICIONAL BOOLEANA_O_NUMERICA
+					OPERACION_BOOLEANA_MIXTA_CONDICIONAL -> tk_neg OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+					//OPERACION_BOOLEANA_MIXTA_CONDICIONAL -> OPERACION_NUMERICA OPERACION_BOOLEANA_NUMERICA_CONDICIONAL SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+					OPERACION_BOOLEANA_MIXTA_CONDICIONAL -> tk_par_izq OPERACION_BOOLEANA_MIXTA_CONDICIONAL tk_par_der SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+					
+						//Me dice si la operacion dentro de un condicional que comienza por un id es numerica o condicional
+						BOOLEANA_O_NUMERICA -> tk_mas OPERACION_MIXTA OPERACION_BOOLEANA_NUMERICA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_menos OPERACION_MIXTA OPERACION_BOOLEANA_NUMERICA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_mult OPERACION_MIXTA OPERACION_BOOLEANA_NUMERICA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_div OPERACION_MIXTA OPERACION_BOOLEANA_NUMERICA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_mod OPERACION_MIXTA OPERACION_BOOLEANA_NUMERICA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_igual OPERACION_MIXTA SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_mayor OPERACION_MIXTA SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_menor OPERACION_MIXTA SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_mayor_igual OPERACION_MIXTA SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_menor_igual OPERACION_MIXTA SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_y OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						BOOLEANA_O_NUMERICA -> tk_o OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						
+							//Decide si es numerica o booleana
+							DECISION_OPERACION -> OPERACION_NUMERICA
+							DECISION_OPERACION -> OPERACION_BOOLEANA
+						
+						//Esta operacion puede contener igualadores
+						OPERACION_BOOLEANA_NUMERICA_CONDICIONAL -> tk_igual OPERACION_MIXTA
+						OPERACION_BOOLEANA_NUMERICA_CONDICIONAL -> tk_mayor OPERACION_MIXTA
+						OPERACION_BOOLEANA_NUMERICA_CONDICIONAL -> tk_menor OPERACION_MIXTA
+						OPERACION_BOOLEANA_NUMERICA_CONDICIONAL -> tk_mayor_igual OPERACION_MIXTA
+						OPERACION_BOOLEANA_NUMERICA_CONDICIONAL -> tk_menor_igual OPERACION_MIXTA
+						OPERACION_BOOLEANA_NUMERICA_CONDICIONAL -> tk_dif OPERACION_MIXTA
+						
+						//Operacion booleana mixta anidada. Parece tonto, pero soluciona el problema de la coma
+						OP_BOOL_MIX_ANIDADA_CONDICIONAL -> verdadero SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						OP_BOOL_MIX_ANIDADA_CONDICIONAL -> falso SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						OP_BOOL_MIX_ANIDADA_CONDICIONAL -> id AGREG_ID_BOOL_CONDICIONAL SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						OP_BOOL_MIX_ANIDADA_CONDICIONAL -> tk_neg OP_BOOL_MIX_ANIDADA_CONDICIONAL
+						OP_BOOL_MIX_ANIDADA_CONDICIONAL -> tk_par_izq OP_BOOL_MIX_ANIDADA tk_par_der SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+					
+						//Suiguiente operacion booleana mixta. Se hace este paso porque si se subia de nivel se interferia con la coma del CONCAT
+						SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL -> EPSILON
+						SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL -> tk_y OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						SIG_OPERACION_BOOLEANA_MIXTA_CONDICIONAL -> tk_o OPERACION_BOOLEANA_MIXTA_CONDICIONAL
+						
+						//Este estado y los dos siguientes arregla el problema de los siguientes
+						//SIG_OP_BOOL_MIX_ANIDADA_CONDICIONAL -> EPSILON
+						//SIG_OP_BOOL_MIX_ANIDADA_CONDICIONAL -> tk_y OP_BOOL_MIX_ANIDADA_CONDICIONAL
+						//SIG_OP_BOOL_MIX_ANIDADA_CONDICIONAL -> tk_o OP_BOOL_MIX_ANIDADA_CONDICIONAL
+						
+						//CUando aparece un id, puede ser el llamado a una funcion, una variable simple, o un atributo de una estructura
+						AGREG_ID_BOOL_CONDICIONAL -> EPSILON
+						AGREG_ID_BOOL_CONDICIONAL -> tk_par_izq CONCAT tk_par_der
+						AGREG_ID_BOOL_CONDICIONAL -> tk_punto id AGREG_ID_SIG_ATR_BOOL_CONDICIONAL
+						
+							//Un id al ser llamado tambien puede referirse al atributo de una estructura
+							AGREG_ID_SIG_ATR_BOOL_CONDICIONAL -> EPSILON
+							AGREG_ID_SIG_ATR_BOOL_CONDICIONAL -> tk_punto id AGREG_ID_SIG_ATR_BOOL_CONDICIONAL
+				
+					SINO -> si_no BODY_FUNCION
+					SINO -> EPSILON
+					
+				CICLO -> para tk_par_izq TIPO_PARA id tk_asig ASIGNACION tk_pyc OPERACION_MIXTA tk_pyc PASOS_PARA tk_par_der hacer BODY_FUNCION fin_para
+				CICLO -> mientras tk_par_izq OPERACION_MIXTA tk_par_der hacer BODY_FUNCION fin_mientras
+				CICLO -> hacer BODY_FUNCION_CICLO mientras tk_par_izq OPERACION_MIXTA tk_par_der
+				
+					BODY_FUNCION_CICLO -> COMANDO BODY_FUNCION_CICLO
+					BODY_FUNCION_CICLO -> DECLARACION_VARIABLE BODY_FUNCION_CICLO
+					BODY_FUNCION_CICLO -> id ASIGNACION_LLAMADO_INSTANCIACION BODY_FUNCION_CICLO
+					BODY_FUNCION_CICLO -> CONDICIONAL BODY_FUNCION_CICLO
+					BODY_FUNCION_CICLO -> CICLOS_ANIDADOS BODY_FUNCION_CICLO
+					BODY_FUNCION_CICLO -> SELECCION BODY_FUNCION_CICLO
+					BODY_FUNCION_CICLO -> EPSILON
+					
+						CICLOS_ANIDADOS -> para tk_par_izq TIPO_PARA id tk_asig ASIGNACION tk_pyc OPERACION_BOOLEANA_MIXTA tk_pyc PASOS_PARA tk_par_der hacer BODY_FUNCION fin_para
+						CICLOS_ANIDADOS -> hacer BODY_FUNCION_CICLO mientras tk_par_izq OPERACION_BOOLEANA_MIXTA tk_par_der
+					
+					PASOS_PARA -> tk_real
+					PASOS_PARA -> tk_entero
+					PASOS_PARA -> id
+				
+					TIPO_PARA -> EPSILON
+					TIPO_PARA -> TIPO
+					
+				SELECCION -> seleccionar tk_par_izq id AGREG_ID_SIG_ATR_BOOL_CONDICIONAL tk_par_der CASOS fin_seleccionar
+				
+					CASOS -> SOLO_DEFECTO
+					CASOS -> ESPECIFICOS
+					
+						SOLO_DEFECTO -> defecto tk_dosp BODY_FUNCION ROMPER
+						
+							ROMPER -> romper tk_pyc
+							ROMPER -> EPSILON
+							
+						ESPECIFICOS -> caso TIPO_CASO tk_dosp BODY_FUNCION ROMPER 
+						
+							TIPO_CASO -> tk_entero
+							TIPO_CASO -> tk_real
+							TIPO_CASO -> tk_cadena
+							TIPO_CASO -> tk_caracter
+							TIPO_CASO -> verdadero
+							TIPO_CASO -> falso
+	
+		//Retorno de una funcion
+		RET -> OPERACION_MIXTA tk_pyc
+		
+	//Definicion de una estructura
+	DE -> estructura id BODY_ESTRUCTURA fin_estructura
+	
+		BODY_ESTRUCTURA -> TIPO id SIG_DECLARACION_ESTRUCTURA tk_pyc SIG_BODY_ESTRUCTURA
+		BODY_ESTRUCTURA -> id AGREG_ID_SIG_ATR_BODY id SIG_DECLARACION_ESTRUCTURA tk_pyc SIG_BODY_ESTRUCTURA
+		
+			SIG_BODY_ESTRUCTURA -> EPSILON
+			SIG_BODY_ESTRUCTURA -> TIPO id SIG_DECLARACION_ESTRUCTURA tk_pyc SIG_BODY_ESTRUCTURA
+			SIG_BODY_ESTRUCTURA -> id AGREG_ID_SIG_ATR_BODY id SIG_DECLARACION_ESTRUCTURA tk_pyc SIG_BODY_ESTRUCTURA
+		
+			SIG_DECLARACION_ESTRUCTURA -> tk_coma id SIG_DECLARACION_ESTRUCTURA
+			SIG_DECLARACION_ESTRUCTURA -> EPSILON
+
+
+//Succesful inputs
+
+//------------------------------------------------------------------------------
+//INPUT
+
+/*
+S -> A B uno
+A -> dos B
+A -> EPSILON
+B -> C D
+B -> tres
+B -> EPSILON
+C -> cuatro A B
+C -> cinco
+D -> seis
+D -> EPSILON
+*/
+
+//OUTPUT
+/*
+
+Primeros
+{'A': ['EPSILON', 'dos'], 'C': ['cuatro', 'cinco'], 'B': ['EPSILON', 'cuatro', 'cinco', 'tres'], 'S': ['dos', 'cuatro', 'cinco', 'tres', 'uno'], 'D': ['EPSILON', 'seis']}
+Siguientes:
+{'S': ['EOF'], 'A': ['cuatro', 'cinco', 'tres', 'uno', 'seis'], 'B': ['uno', 'seis', 'cuatro', 'cinco', 'tres'], 'C': ['seis', 'cuatro', 'cinco', 'tres', 'uno'], 'D': ['uno', 'seis', 'cuatro', 'cinco', 'tres']}
+
+*/
+//------------------------------------------------------------------------------
+//INPUT
+/*
+S -> A uno B C
+S -> S dos
+A -> B C D
+A -> A tres
+A -> EPSILON
+B -> D cuatro C tres
+B -> EPSILON
+C -> cinco D B
+C -> EPSILON
+D -> seis
+D -> EPSILON
+*/
+
+//OUTPUT
+/*
+Primeros
+{'D': ['EPSILON', 'seis'], 'B': ['EPSILON', 'seis', 'cuatro'], 'C': ['EPSILON', 'cinco'], 'A': ['EPSILON', 'seis', 'cuatro', 'cinco', 'tres'], 'S': ['seis', 'cuatro', 'cinco', 'tres', 'uno']}
+Siguientes:
+{'S': ['dos', 'EOF'], 'A': ['uno', 'tres'], 'B': ['cinco', 'seis', 'dos', 'EOF', 'uno', 'tres'], 'C': ['seis', 'tres', 'dos', 'EOF', 'uno'], 'D': ['cuatro', 'seis', 'uno', 'tres', 'dos', 'EOF']}
+Predictions:
+{'S -> A uno B C': ['seis', 'cuatro', 'cinco', 'tres', 'uno'], 'S -> S dos': ['seis', 'cuatro', 'cinco', 'tres', 'uno'], 'A -> B C D': ['seis', 'cuatro', 'cinco', 'uno', 'tres'], 'A -> A tres': ['seis', 'cuatro', 'cinco', 'tres'], 'A -> EPSILON': ['uno', 'tres'], 'B -> D cuatro C tres': ['seis', 'cuatro'], 'B -> EPSILON': ['cinco', 'seis', 'dos', 'EOF', 'uno', 'tres'], 'C -> cinco D B': ['cinco'], 'C -> EPSILON': ['seis', 'tres', 'dos', 'EOF', 'uno'], 'D -> seis': ['seis'], 'D -> EPSILON': ['cuatro', 'seis', 'uno', 'tres', 'dos', 'EOF']}
+*/
+//------------------------------------------------------------------------------
+//INPUT
+
+/*
+S -> A B uno
+A -> dos B
+A -> EPSILON
+B -> C D
+B -> tres
+B -> EPSILON
+C -> cuatro A B
+C -> cinco
+D -> seis
+D -> EPSILON
+*/
+
+//OUTPUT
+/*
+Primeros
+{'A': ['EPSILON', 'dos'], 'C': ['cuatro', 'cinco'], 'B': ['EPSILON', 'cuatro', 'cinco', 'tres'], 'S': ['dos', 'cuatro', 'cinco', 'tres', 'uno'], 'D': ['EPSILON', 'seis']}
+Siguientes:
+{'S': ['EOF'], 'A': ['cuatro', 'cinco', 'tres', 'uno', 'seis'], 'B': ['uno', 'seis', 'cuatro', 'cinco', 'tres'], 'C': ['seis', 'cuatro', 'cinco', 'tres', 'uno'], 'D': ['uno', 'seis', 'cuatro', 'cinco', 'tres']}
+Predictions:
+{'S -> A B uno': ['dos', 'cuatro', 'cinco', 'tres', 'uno'], 'A -> dos B': ['dos'], 'A -> EPSILON': ['cuatro', 'cinco', 'tres', 'uno', 'seis'], 'B -> C D': ['cuatro', 'cinco'], 'B -> tres': ['tres'], 'B -> EPSILON': ['uno', 'seis', 'cuatro', 'cinco', 'tres'], 'C -> cuatro A B': ['cuatro'], 'C -> cinco': ['cinco'], 'D -> seis': ['seis'], 'D -> EPSILON': ['uno', 'seis', 'cuatro', 'cinco', 'tres']}
+*/
+//------------------------------------------------------------------------------
+//INPUT
+/*
+A -> B C
+A -> ant A all
+B -> big C
+B -> bus A boss
+B -> EPSILON
+C -> cat
+C -> cow
+*/
+
+//OUTPUT
+/*
+Primeros
+{'B': ['EPSILON', 'big', 'bus'], 'C': ['cat', 'cow'], 'A': ['big', 'bus', 'cat', 'cow', 'ant']}
+Siguientes:
+{'A': ['all', 'boss', 'EOF'], 'B': ['cat', 'cow'], 'C': ['all', 'boss', 'EOF', 'cat', 'cow']}
+*/
+//------------------------------------------------------------------------------
+//INPUT
+/*
+A -> B C
+A -> bad
+B ->  big C boss
+B -> EPSILON
+C -> cat
+C -> cow
+*/
+
+//OUTPUT
+/*
+Primeros
+{'B': ['EPSILON', 'big'], 'C': ['cat', 'cow'], 'A': ['big', 'cat', 'cow', 'bad']}
+Siguientes:
+{'A': ['EOF'], 'B': ['cat', 'cow'], 'C': ['boss', 'EOF']}
+Predictions:
+{'A -> B C': ['big', 'cat', 'cow'], 'A -> bad': ['bad'], 'B -> big C boss': ['big'], 'B -> EPSILON': ['cat', 'cow'], 'C -> cat': ['cat'], 'C -> cow': ['cow']}
+*/
+//------------------------------------------------------------------------------
+//INPUT
+/*
+A -> B C
+A -> bad
+B ->  big C boss
+B -> bet
+C -> cat
+C -> cow
+*/
+
+//OUTPUT
+/*
+Primeros
+{'B': ['big', 'bet'], 'A': ['big', 'bet', 'bad'], 'C': ['cat', 'cow']}
+Siguientes:
+{'A': ['EOF'], 'B': ['cat', 'cow'], 'C': ['boss', 'EOF']}
+Predictions:
+{'A -> B C': ['big', 'bet'], 'A -> bad': ['bad'], 'B -> big C boss': ['big'], 'B -> bet': ['bet'], 'C -> cat': ['cat'], 'C -> cow': ['cow']}
+*/
+//------------------------------------------------------------------------------
+//INPUT
+/*
+S -> A B C S_P
+S_P -> uno S_P
+S_P -> EPSILON
+A -> dos B C
+A -> EPSILON
+B -> C tres
+B -> EPSILON
+C -> cuatro B
+C -> EPSILON
+*/
+
+//OUTPUT
+/*
+Primeros
+{'A': ['EPSILON', 'dos'], 'C': ['EPSILON', 'cuatro'], 'B': ['EPSILON', 'cuatro', 'tres'], 'S_P': ['EPSILON', 'uno'], 'S': ['cuatro', 'EPSILON', 'dos', 'tres', 'uno']}
+Siguientes:
+{'S': ['EOF'], 'S_P': ['EOF'], 'A': ['cuatro', 'tres', 'uno', 'EOF'], 'B': ['cuatro', 'uno', 'EOF', 'tres'], 'C': ['uno', 'tres', 'EOF', 'cuatro']}
+Predictions:
+{'S -> A B C S_P': ['dos', 'cuatro', 'tres', 'uno', 'EOF'], 'S_P -> uno S_P': ['uno'], 'S_P -> EPSILON': ['EOF'], 'A -> dos B C': ['dos'], 'A -> EPSILON': ['cuatro', 'tres', 'uno', 'EOF'], 'B -> C tres': ['cuatro', 'tres'], 'B -> EPSILON': ['cuatro', 'uno', 'EOF', 'tres'], 'C -> cuatro B': ['cuatro'], 'C -> EPSILON': ['uno', 'tres', 'EOF', 'cuatro']}
+*/
+//------------------------------------------------------------------------------
+//INPUT
+/*
+S -> B uno
+S -> dos C
+S -> EPSILON
+A -> S tres B C
+A -> cuatro
+A -> EPSILON
+B -> A cinco C seis
+B -> EPSILON
+C -> siete B
+C -> EPSILON
+*/
+
+//OUTPUT
+/*
+Primeros
+{'A': ['EPSILON', 'uno', 'dos', 'tres', 'cuatro', 'cinco'], 'B': ['EPSILON', 'uno', 'dos', 'tres', 'cuatro', 'cinco'], 'S': ['EPSILON', 'uno', 'dos', 'tres', 'cuatro', 'cinco'], 'C': ['EPSILON', 'siete']}
+Siguientes:
+{'S': ['tres', 'EOF'], 'A': ['cinco'], 'B': ['uno', 'siete', 'cinco', 'tres', 'EOF', 'seis'], 'C': ['seis', 'tres', 'EOF', 'cinco']}
+Predictions:
+{'S -> B uno': ['uno', 'dos', 'tres', 'cuatro', 'cinco'], 'S -> dos C': ['dos'], 'S -> EPSILON': ['tres', 'EOF'], 'A -> S tres B C': ['uno', 'dos', 'tres', 'cuatro', 'cinco'], 'A -> cuatro': ['cuatro'], 'A -> EPSILON': ['cinco'], 'B -> A cinco C seis': ['uno', 'dos', 'tres', 'cuatro', 'cinco'], 'B -> EPSILON': ['uno', 'siete', 'cinco', 'tres', 'EOF', 'seis'], 'C -> siete B': ['siete'], 'C -> EPSILON': ['seis', 'tres', 'EOF', 'cinco']}
+*/
+//------------------------------------------------------------------------------
+//INPUT
+/*
+S -> A B C
+S -> D E
+A -> dos B tres
+A -> EPSILON
+B -> cuatro C cinco
+B -> EPSILON
+C -> seis
+C -> EPSILON
+D -> uno A E
+D -> B
+E -> tres A
+*/
+
+//OUTPUT
+/*
+Primeros
+{'A': ['EPSILON', 'dos'], 'B': ['EPSILON', 'cuatro'], 'C': ['EPSILON', 'seis'], 'D': ['EPSILON', 'cuatro', 'uno'], 'E': ['tres'], 'S': ['EPSILON', 'cuatro', 'dos', 'seis', 'uno', 'tres']}
+Siguientes:
+{'S': ['EOF'], 'A': ['cuatro', 'seis', 'tres', 'EOF'], 'B': ['seis', 'tres', 'EOF'], 'C': ['cinco', 'EOF'], 'D': ['tres'], 'E': ['EOF', 'tres']}
+Predictions:
+{'S -> A B C': ['dos', 'cuatro', 'seis', 'EOF'], 'S -> D E': ['cuatro', 'uno', 'tres'], 'A -> dos B tres': ['dos'], 'A -> EPSILON': ['cuatro', 'seis', 'tres', 'EOF'], 'B -> cuatro C cinco': ['cuatro'], 'B -> EPSILON': ['seis', 'tres', 'EOF'], 'C -> seis': ['seis'], 'C -> EPSILON': ['cinco', 'EOF'], 'D -> uno A E': ['uno'], 'D -> B': ['cuatro', 'tres'], 'E -> tres A': ['tres']}
+*/
+//------------------------------------------------------------------------------
+//INPUT
+/*
+A -> nicolas B viveros
+A -> B
+A -> derp
+B -> A nicolas
+C -> D daniel
+D -> daniel
+D -> viveros
+*/
+
+//OUTPUT
+/*
+Primeros
+{'B': ['nicolas', 'derp'], 'A': ['nicolas', 'derp'], 'D': ['daniel', 'viveros'], 'C': ['daniel', 'viveros']}
+Siguientes:
+{'A': ['nicolas', 'EOF'], 'B': ['viveros', 'nicolas', 'EOF'], 'C': [], 'D': ['daniel']}
+Predictions:
+{'A -> nicolas B viveros': ['nicolas'], 'A -> B': ['nicolas', 'derp'], 'A -> derp': ['derp'], 'B -> A nicolas': ['nicolas', 'derp'], 'C -> D daniel': ['daniel', 'viveros'], 'D -> daniel': ['daniel'], 'D -> viveros': ['viveros']}
+*/
+//------------------------------------------------------------------------------
